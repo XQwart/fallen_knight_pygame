@@ -1,0 +1,13 @@
+"""Константы (не пользовательские)."""
+TILE_SIZE = 64
+MAP_W_TILES, MAP_H_TILES = 100, 100
+WORLD_WIDTH_PX, WORLD_HEIGHT_PX = MAP_W_TILES * TILE_SIZE, MAP_H_TILES * TILE_SIZE
+
+CAM_LERP = 0.20           # без мёртвой зоны → чуть медленнее
+
+GRAVITY, JUMP_SPEED = 0.6, -12.0
+MAX_FALL_SPEED = 18.0
+BASE_SPEED, SPRINT_MULT = 4.0, 1.2
+DOUBLE_CLICK_MS = 250
+
+BG_COLOR = (50, 50, 70)
