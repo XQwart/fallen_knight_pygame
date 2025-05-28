@@ -40,7 +40,7 @@ class DialogueEntry:
 class DialogModel:
     """Загружает и предоставляет реплики по индексу."""
 
-    def __init__(self, assets_dir: str = "assets") -> None:
+    def __init__(self, assets_dir: str = "assets/chapters/level_0/") -> None:
         self.entries: list[DialogueEntry] = self._load_script(Path(assets_dir))
 
     # ---------------------------------------------------------------- public
@@ -57,6 +57,19 @@ class DialogModel:
         if story_json.exists():
             with story_json.open("r", encoding="utf-8") as f:
                 raw = json.load(f)
+            for item in raw:
+                if 'image' in item and item['image']:
+                    # Пути в JSON уже должны быть относительно корня проекта, используем их напрямую
+                    # item['image'] = str(Path(root.parent.parent) / item['image']).replace('\\\\', '/') # Старая некорректная строка
+                    pass # Используем путь как есть
+                if 'sound' in item and item['sound']:
+                    # Пути в JSON уже должны быть относительно корня проекта, используем их напрямую
+                    # item['sound'] = str(Path(root.parent.parent) / item['sound']).replace('\\\\', '/') # Старая некорректная строка
+                    pass # Используем путь как есть
+                if 'portrait' in item and item['portrait']:
+                    # Пути в JSON уже должны быть относительно корня проекта, используем их напрямую
+                    # item['portrait'] = str(Path(root.parent.parent) / item['portrait']).replace('\\\\', '/') # Старая некорректная строка
+                    pass # Используем путь как есть
             return [DialogueEntry(**item) for item in raw]
 
         # ----- fallback: story.txt (|‑разделители) -------------------------
@@ -82,5 +95,5 @@ class DialogModel:
             return result
 
         raise FileNotFoundError(
-            "Не найден сценарий 'assets/story.json' или 'assets/story.txt'"
+            f"Не найден сценарий '{story_json}' или 'assets/story.txt'"
         )

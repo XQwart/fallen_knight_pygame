@@ -17,17 +17,24 @@ class DialogController:
 
     def __init__(self, cfg) -> None:
         self.cfg = cfg
-        self.model = DialogModel()
+        self.model: DialogModel | None = None
         self.screen = cfg.screen
         self.clock = pg.time.Clock()
-        self.view = DialogView(self.model, self.screen, cfg)
+        self.view = DialogView(None, self.screen, cfg)
 
         self.current = 0
-        pg.mixer.music.stop()           
-        self._play_sound_if_any()
 
     # ---------------------------------------------------------------- run
     def run(self) -> str | None:
+        if not self.model:
+            print("Ошибка: DialogModel не была установлена для DialogController.")
+            return "menu"
+
+        self.view.model = self.model
+        self.current = 0
+        pg.mixer.music.stop()
+        self._play_sound_if_any()
+
         while True:
             for event in pg.event.get():
                 if event.type == pg.QUIT:

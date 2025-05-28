@@ -113,31 +113,27 @@ class Player(Character):
             return self.skill_manager.use_skill_by_key(key, self)
         return False
 
+    def get_speed(self) -> float:
+        """Возвращает текущую скорость игрока."""
+        return BASE_SPEED * (SPRINT_MULT if self._sprint_on else 1)
+
     def update(self) -> None:
-        """Вызывается каждый кадр: обновляет физику и текущий кадр анимации."""
-        # Управление сменой состояний (Finite State Machine)
+        """Вызывается каждый кадр: обновляет FSM и анимацию."""
         self._update_state_machine()
-        # Горизонтальное движение
-        speed = BASE_SPEED * (SPRINT_MULT if self._sprint_on else 1)
-        dx = self.vel_x * speed
-        # Вертикальное движение (падение под действием гравитации)
-        if not self.on_ground:
-            self.vel_y = min(self.vel_y + GRAVITY, MAX_FALL_SPEED)
-        dy = self.vel_y
-        # Перемещаем прямоугольник игрока
-        self.rect.move_ip(round(dx), round(dy))
-        # Обновляем направление взгляда для отзеркаливания спрайта
-        if dx < 0:
+
+        # Определяем направление взгляда по vel_x, если он не ноль
+        if self.vel_x < 0:
             self._face_left = True
-        elif dx > 0:
+        elif self.vel_x > 0:
             self._face_left = False
-        # Получаем текущий кадр анимации (с учётом направления) и обновляем изображение
+
+        # Обновляем изображение
         self.image = self._animations[self._state].update(flip_x=self._face_left)
-        
-        # Обновляем состояние скиллов (кулдауны)
-        dt = 1 / 60  # примерный шаг времени (лучше использовать реальный delta time)
+
+        # Обновляем скиллы
+        dt = 1 / 60  # TODO: Использовать реальное время кадра
         self.skill_manager.update(dt)
-    
+
     # ---------------- Методы управления ресурсами ----------------
     def add_coin(self, amount: int = 1) -> None:
         """Добавить монеты игроку."""
@@ -195,28 +191,34 @@ class Player(Character):
         self._animations[new_state].start()
 
     def _update_state_machine(self) -> None:
-        """Логика переключения между анимационными состояниями на основе действий."""
-        # Если идёт атака или получение урона – ждём окончания анимации
+        """Логика переключения между анимационными состояниями."""
         if self._state in {PState.ATTACK1, PState.ATTACK2, PState.HEAVY, PState.HURT}:
             if self._animations[self._state].finished:
                 self._enter_state(PState.IDLE)
             return
         if self._state == PState.DEATH:
             if self._animations[self._state].finished:
-                self.kill()
+                self.kill() # Игрок умирает
             return
         if self._state == PState.BLOCK:
-            # Остаёмся в блоке, пока не отпустят блокирование
             return
-        # Определяем желаемое состояние на основе ввода (движение/спринт или стояние)
-        moving = self.vel_x != 0
+
+        # --- Определяем состояние по vel_x ---
+        moving = self.vel_x != 0 # Используем vel_x напрямую
+        # --- Конец измененного кода ---
+
         desired_state = PState.RUN if self._sprint_on and moving else (PState.WALK if moving else PState.IDLE)
         if self._state != desired_state:
             self._enter_state(desired_state)
 
     def _recalc_vel_x(self) -> None:
-        """Пересчитать горизонтальную скорость на основе флагов нажатия клавиш."""
-        self.vel_x = (-1 if self.left_down else 0) + (1 if self.right_down else 0)
+        """Пересчитать горизонтальную скорость на основе флагов."""
+        # Устанавливаем vel_x = 0, если обе или ни одна клавиша не нажата
+        self.vel_x = 0
+        if self.left_down and not self.right_down:
+            self.vel_x = -1
+        elif self.right_down and not self.left_down:
+            self.vel_x = 1
 
     @staticmethod
     def _load_frames_from_folder(path: Path) -> list[pg.Surface]:

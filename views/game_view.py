@@ -6,6 +6,7 @@ import pygame as pg
 from models.constants import BG_COLOR
 from views.camera import Camera
 from views.hud import HUD
+from models.level import Level
 
 
 class GameView:
@@ -26,16 +27,19 @@ class GameView:
     def update(self, player: pg.sprite.Sprite) -> None:
         self.camera.update(player)
 
-    def draw(self, sprites: pg.sprite.AbstractGroup) -> None:
+    def draw(self, player: pg.sprite.Sprite, sprites: pg.sprite.AbstractGroup, level: Level) -> None:
         # Очищаем экран
         self.screen.fill(BG_COLOR)
+        
+        # Отрисовываем уровень через камеру
+        level.run(self.camera)
         
         # Отрисовываем игровые объекты через камеру
         for spr in sprites:
             self.screen.blit(spr.image, self.camera.apply(spr))
         
         # Отрисовываем HUD поверх всего
-        self.hud.draw(sprites.sprite)
+        self.hud.draw(player)
         
         # Обновляем экран
         pg.display.flip()
